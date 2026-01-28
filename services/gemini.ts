@@ -1,8 +1,9 @@
+
 import { GoogleGenAI, Type } from "@google/genai";
 import { SoilData, ClimateData, LocationData, CropPredictionResult, DiseaseDetectionResult } from "../types";
 
-// Initialize with the environment variable injected by Vite.
-// Ensure process.env.API_KEY is available during the build phase in Vercel.
+// Always initialize GoogleGenAI with a named parameter.
+// The API key is assumed to be available in process.env.API_KEY as per system requirements.
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 export const getCropPrediction = async (
@@ -18,12 +19,9 @@ export const getCropPrediction = async (
   Provide results in JSON format matching the schema exactly.`;
 
   try {
-    if (!process.env.API_KEY) {
-      throw new Error("API_KEY_MISSING");
-    }
-
+    // Using gemini-3-pro-preview for complex reasoning and STEM-related agricultural analysis.
     const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
+      model: 'gemini-3-pro-preview',
       contents: prompt,
       config: {
         responseMimeType: "application/json",
@@ -41,14 +39,12 @@ export const getCropPrediction = async (
       }
     });
 
+    // Access the text property directly on the response object.
     const text = response.text;
     if (!text) throw new Error("EMPTY_RESPONSE");
     return JSON.parse(text.trim());
   } catch (error: any) {
     console.error("Gemini Prediction Error:", error);
-    if (error.message === "API_KEY_MISSING" || error.message?.includes("API_KEY")) {
-      throw new Error("Configuration Error: API_KEY is missing. Please ensure it is added to Vercel and you have RE-DEPLOYED the app.");
-    }
     throw new Error(`AI Prediction Failed: ${error.message || "Unknown Error"}`);
   }
 };
@@ -60,12 +56,9 @@ export const detectCropDisease = async (
   Respond strictly in JSON format matching the schema.`;
 
   try {
-    if (!process.env.API_KEY) {
-      throw new Error("API_KEY_MISSING");
-    }
-
+    // Using gemini-3-pro-preview for multimodal complex analysis of crop diseases.
     const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
+      model: 'gemini-3-pro-preview',
       contents: {
         parts: [
           { inlineData: { mimeType: "image/jpeg", data: imageData.split(',')[1] } },
@@ -88,14 +81,12 @@ export const detectCropDisease = async (
       }
     });
 
+    // Access the text property directly on the response object.
     const text = response.text;
     if (!text) throw new Error("EMPTY_RESPONSE");
     return JSON.parse(text.trim());
   } catch (error: any) {
     console.error("Gemini Disease Detection Error:", error);
-    if (error.message === "API_KEY_MISSING") {
-      throw new Error("Configuration Error: API_KEY is missing. Add it to Vercel and trigger a NEW deployment.");
-    }
     throw new Error(`Disease Detection Failed: ${error.message || "Unknown Error"}`);
   }
 };
