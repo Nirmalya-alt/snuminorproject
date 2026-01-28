@@ -2,8 +2,7 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { SoilData, ClimateData, LocationData, CropPredictionResult, DiseaseDetectionResult } from "../types";
 
-// Standard initialization as per guidelines.
-// Assume process.env.API_KEY is pre-configured and accessible in the deployment context.
+// Initialize the Google GenAI client directly with the API key from environment variables.
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 export const getCropPrediction = async (
@@ -18,8 +17,9 @@ export const getCropPrediction = async (
   
   Provide results in JSON format matching the schema.`;
 
+  // Use 'gemini-3-pro-preview' for complex reasoning and advanced agricultural advice.
   const response = await ai.models.generateContent({
-    model: 'gemini-3-flash-preview',
+    model: 'gemini-3-pro-preview',
     contents: prompt,
     config: {
       responseMimeType: "application/json",
@@ -37,8 +37,9 @@ export const getCropPrediction = async (
     }
   });
 
-  if (!response.text) throw new Error("AI failed to provide a prediction.");
-  return JSON.parse(response.text);
+  const text = response.text;
+  if (!text) throw new Error("AI failed to provide a prediction.");
+  return JSON.parse(text.trim());
 };
 
 export const detectCropDisease = async (
@@ -47,8 +48,9 @@ export const detectCropDisease = async (
   const prompt = `Identify the crop disease from this image and provide treatment and preventive advice. 
   Respond strictly in JSON format matching the schema.`;
 
+  // Use 'gemini-3-pro-preview' for high-accuracy image analysis and disease diagnosis.
   const response = await ai.models.generateContent({
-    model: 'gemini-3-flash-preview',
+    model: 'gemini-3-pro-preview',
     contents: {
       parts: [
         { inlineData: { mimeType: "image/jpeg", data: imageData.split(',')[1] } },
@@ -71,6 +73,7 @@ export const detectCropDisease = async (
     }
   });
 
-  if (!response.text) throw new Error("AI failed to analyze the disease image.");
-  return JSON.parse(response.text);
+  const text = response.text;
+  if (!text) throw new Error("AI failed to analyze the disease image.");
+  return JSON.parse(text.trim());
 };
