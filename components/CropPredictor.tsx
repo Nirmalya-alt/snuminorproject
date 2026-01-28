@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { TRANSLATIONS, INDIAN_STATES } from '../constants';
 import { Language, LocationData, SoilData, ClimateData, CropPredictionResult } from '../types';
@@ -17,7 +16,6 @@ const CropPredictor: React.FC<CropPredictorProps> = ({ lang }) => {
   const [climate, setClimate] = useState<ClimateData>({ rainfall: '', temperature: '' });
   const [result, setResult] = useState<CropPredictionResult | null>(null);
   
-  // District autocomplete state
   const [districtQuery, setDistrictQuery] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
 
@@ -27,7 +25,6 @@ const CropPredictor: React.FC<CropPredictorProps> = ({ lang }) => {
   );
 
   useEffect(() => {
-    // Reset district when state changes
     setDistrictQuery(location.district);
   }, [location.district]);
 
@@ -41,9 +38,9 @@ const CropPredictor: React.FC<CropPredictorProps> = ({ lang }) => {
     try {
       const res = await getCropPrediction(location, soil, climate);
       setResult(res);
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      alert("Error predicting crop. Please check your network and try again.");
+      alert(error.message || "Failed to get prediction. Please check your internet and API settings.");
     } finally {
       setLoading(false);
     }
@@ -68,7 +65,6 @@ const CropPredictor: React.FC<CropPredictorProps> = ({ lang }) => {
           <h2 className="text-2xl font-bold text-gray-800 mb-6">{t.nav.predictor}</h2>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Location with Autocomplete District */}
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">{t.labels.state}</label>
@@ -122,7 +118,6 @@ const CropPredictor: React.FC<CropPredictorProps> = ({ lang }) => {
               </div>
             </div>
 
-            {/* Soil */}
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">{t.labels.soilType}</label>
@@ -160,7 +155,6 @@ const CropPredictor: React.FC<CropPredictorProps> = ({ lang }) => {
               </div>
             </div>
 
-            {/* More Soil & Climate */}
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">{t.labels.phosphorus}</label>
