@@ -1,25 +1,16 @@
-
-import { defineConfig, loadEnv } from 'vite';
+import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
-export default defineConfig(({ mode }) => {
-  // Load env file based on `mode` in the current working directory.
-  // Using '.' instead of process.cwd() to resolve TypeScript property access issues in certain Node environments.
-  const env = loadEnv(mode, '.', '');
-  
-  return {
-    plugins: [react()],
-    define: {
-      'process.env.API_KEY': JSON.stringify(env.API_KEY),
-      // Fallback for other process.env usages
-      'process.env': env
-    },
-    server: {
-      port: 3000
-    },
-    build: {
-      outDir: 'dist',
-      sourcemap: true
-    }
-  };
+export default defineConfig({
+  plugins: [react()],
+  define: {
+    // Directly inject the API_KEY from the build environment into the client-side code.
+    // This handles cases where Vercel provides the key during the build process.
+    'process.env.API_KEY': JSON.stringify(process.env.API_KEY),
+  },
+  build: {
+    outDir: 'dist',
+    sourcemap: false,
+    minify: true,
+  },
 });

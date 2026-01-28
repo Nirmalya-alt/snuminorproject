@@ -1,15 +1,26 @@
-
 import { GoogleGenAI, Type } from "@google/genai";
 import { SoilData, ClimateData, LocationData, CropPredictionResult, DiseaseDetectionResult } from "../types";
 
-// Initialize the Google GenAI client directly with the API key from environment variables.
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// Lazy-initialize the AI client to prevent top-level crashes.
+let aiInstance: GoogleGenAI | null = null;
+
+const getAI = () => {
+  if (!aiInstance) {
+    const apiKey = process.env.API_KEY;
+    if (!apiKey) {
+      throw new Error("API Key is missing. Please ensure the API_KEY environment variable is set in your Vercel project settings.");
+    }
+    aiInstance = new GoogleGenAI({ apiKey });
+  }
+  return aiInstance;
+};
 
 export const getCropPrediction = async (
   location: LocationData,
   soil: SoilData,
   climate: ClimateData
 ): Promise<CropPredictionResult> => {
+  const ai = getAI();
   const prompt = `Act as an Indian agricultural expert. Based on the following data, predict the best crops for the farmer.
   Location: ${location.district}, ${location.state}
   Soil: Type=${soil.type}, pH=${soil.ph}, N=${soil.nitrogen}, P=${soil.phosphorus}, K=${soil.potassium}
@@ -17,7 +28,6 @@ export const getCropPrediction = async (
   
   Provide results in JSON format matching the schema.`;
 
-  // Use 'gemini-3-pro-preview' for complex reasoning and advanced agricultural advice.
   const response = await ai.models.generateContent({
     model: 'gemini-3-pro-preview',
     contents: prompt,
@@ -45,10 +55,10 @@ export const getCropPrediction = async (
 export const detectCropDisease = async (
   imageData: string
 ): Promise<DiseaseDetectionResult> => {
+  const ai = getAI();
   const prompt = `Identify the crop disease from this image and provide treatment and preventive advice. 
   Respond strictly in JSON format matching the schema.`;
 
-  // Use 'gemini-3-pro-preview' for high-accuracy image analysis and disease diagnosis.
   const response = await ai.models.generateContent({
     model: 'gemini-3-pro-preview',
     contents: {
