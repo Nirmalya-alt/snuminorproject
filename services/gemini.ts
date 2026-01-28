@@ -1,7 +1,8 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { SoilData, ClimateData, LocationData, CropPredictionResult, DiseaseDetectionResult } from "../types";
 
-// The Gemini client must be initialized using the environment variable process.env.API_KEY.
+// Initialize with the environment variable injected by Vite.
+// Ensure process.env.API_KEY is available during the build phase in Vercel.
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 export const getCropPrediction = async (
@@ -17,6 +18,10 @@ export const getCropPrediction = async (
   Provide results in JSON format matching the schema exactly.`;
 
   try {
+    if (!process.env.API_KEY) {
+      throw new Error("API_KEY_MISSING");
+    }
+
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
       contents: prompt,
@@ -37,15 +42,14 @@ export const getCropPrediction = async (
     });
 
     const text = response.text;
-    if (!text) throw new Error("The AI returned an empty response.");
+    if (!text) throw new Error("EMPTY_RESPONSE");
     return JSON.parse(text.trim());
   } catch (error: any) {
     console.error("Gemini Prediction Error:", error);
-    // Clearer error reporting for deployment issues
-    if (error.message?.includes("API_KEY") || !process.env.API_KEY) {
-      throw new Error("Configuration Error: API_KEY is missing or invalid. Please check Vercel environment variables and trigger a NEW deployment.");
+    if (error.message === "API_KEY_MISSING" || error.message?.includes("API_KEY")) {
+      throw new Error("Configuration Error: API_KEY is missing. Please ensure it is added to Vercel and you have RE-DEPLOYED the app.");
     }
-    throw new Error(`AI Prediction Failed: ${error.message}`);
+    throw new Error(`AI Prediction Failed: ${error.message || "Unknown Error"}`);
   }
 };
 
@@ -56,6 +60,10 @@ export const detectCropDisease = async (
   Respond strictly in JSON format matching the schema.`;
 
   try {
+    if (!process.env.API_KEY) {
+      throw new Error("API_KEY_MISSING");
+    }
+
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
       contents: {
@@ -81,10 +89,13 @@ export const detectCropDisease = async (
     });
 
     const text = response.text;
-    if (!text) throw new Error("The AI returned an empty response.");
+    if (!text) throw new Error("EMPTY_RESPONSE");
     return JSON.parse(text.trim());
   } catch (error: any) {
     console.error("Gemini Disease Detection Error:", error);
-    throw new Error(`Disease Detection Failed: ${error.message}`);
+    if (error.message === "API_KEY_MISSING") {
+      throw new Error("Configuration Error: API_KEY is missing. Add it to Vercel and trigger a NEW deployment.");
+    }
+    throw new Error(`Disease Detection Failed: ${error.message || "Unknown Error"}`);
   }
 };
