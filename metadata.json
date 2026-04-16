@@ -1,6 +1,6 @@
 {
-  "name": "KisanSight - AI Agriculture Assistant",
-  "description": "A comprehensive AI-powered platform for Indian farmers providing crop yield prediction, soil analysis, and leaf disease detection in multiple languages.",
+  "name": "Indian Farmer Assistant",
+  "description": "A comprehensive data-driven agriculture decision support application for Indian farmers, providing crop yield prediction, disease detection, weather advisory, and expense tracking in multiple languages.",
   "requestFramePermissions": [
     "camera"
   ]
